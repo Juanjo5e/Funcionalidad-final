@@ -1,0 +1,44 @@
+package co.edu.uco.deviucopay.business.facade.impl.institucion;
+
+import co.edu.uco.deviucopay.business.assembler.dto.impl.InstitucionAssemblerDTO;
+import co.edu.uco.deviucopay.business.facade.FacadeWithoutReturn;
+import co.edu.uco.deviucopay.business.usecase.impl.institucion.RegistrarInstitucion;
+import co.edu.uco.deviucopay.crosscutting.exceptions.DeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.BusinessDeviUcopayException;
+import co.edu.uco.deviucopay.data.dao.factory.DAOFactory;
+
+import co.edu.uco.deviucopay.dto.InstitucionDTO;
+
+public class RegistrarInstitucionFacade implements FacadeWithoutReturn<InstitucionDTO>{
+    
+    private DAOFactory daoFactory;
+    
+    public RegistrarInstitucionFacade() {
+        daoFactory = DAOFactory.getFactory();
+    }
+    
+    @Override
+    public void execute(InstitucionDTO dto) {
+        daoFactory.iniciarTransaccion();
+        try {
+            var useCase= new RegistrarInstitucion(daoFactory);
+            var institucionDomain = InstitucionAssemblerDTO.getInstance().toDomain(dto);
+            
+            useCase.execute(institucionDomain);
+            daoFactory.confirmarTransaccion();
+        }catch (DeviUcopayException exception) {
+            daoFactory.cancelarTransaccion();
+            throw exception;
+            
+        }catch (Exception exception) {
+            daoFactory.cancelarTransaccion();
+            var mensajeUsuario = "Se ha presentado un problema tratando de registrar la informacion de la Institucion";
+            var mensajeTecnico = "Se ha presentado un problema INESPERADO tratando de registrar la informacion de la Institucion";
+            
+            throw new BusinessDeviUcopayException(mensajeUsuario, mensajeTecnico, exception);
+        }finally {
+            daoFactory.cerrarConexion();
+        }   
+    }
+    
+}

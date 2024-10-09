@@ -1,0 +1,55 @@
+package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+
+public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+    private final CuentaDAO cuentaDAO;
+
+    public EliminarCuenta(CuentaDAO cuentaDAO) {
+        this.cuentaDAO = cuentaDAO;
+    }
+
+    @Override
+    public void execute(String numeroCuenta) {
+    	if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+            throw new IllegalArgumentException("El número de cuenta es requerido");
+        }
+    	
+        cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+    }
+    }
+    
+   /* package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+    import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+    import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+
+    public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+        private final CuentaDAO cuentaDAO;
+
+        public EliminarCuenta(CuentaDAO cuentaDAO) {
+            this.cuentaDAO = cuentaDAO;
+        }
+   
+
+        @Override
+       public void execute(String numeroCuenta) {
+            if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+                throw new IllegalArgumentException("El número de cuenta es requerido");
+            }
+
+            CuentaDAO cuenta = cuentaDAO.findByNumeroCuenta(numeroCuenta);
+            if (cuenta == null) {
+                throw new RuntimeException("La cuenta no existe");
+            }
+
+            if (!cuenta.getEstado().equals("ACTIVO")) {
+                throw new RuntimeException("La cuenta no se puede eliminar porque no está activa");
+            }
+
+            cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+        }*/
+

@@ -1,0 +1,37 @@
+package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+import java.util.List;
+
+import co.edu.uco.deviucopay.business.facade.impl.cuenta.ConsultarCuentaFacade;
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+import co.edu.uco.deviucopay.dto.CuentaDTO;
+
+public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+    private final CuentaDAO cuentaDAO;
+    private final ConsultarCuentaFacade consultarCuentaFacade;
+
+    public EliminarCuenta(CuentaDAO cuentaDAO, ConsultarCuentaFacade consultarCuentaFacade) {
+        this.cuentaDAO = cuentaDAO;
+        this.consultarCuentaFacade = consultarCuentaFacade;
+    }
+
+    @Override
+    public void execute(String numeroCuenta) {
+        if (!existitCuenta(numeroCuenta)) {
+            throw new RuntimeException("La cuenta no existe");
+        }
+
+        // Verificar otros requisitos para eliminar la cuenta
+
+        cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+    }
+
+    private boolean existitCuenta(String numeroCuenta) {
+        CuentaDTO cuentaDTO = new CuentaDTO();
+        cuentaDTO.setNumeroCuenta(numeroCuenta);
+        List<CuentaDTO> cuentas = consultarCuentaFacade.execute(cuentaDTO);
+        return !cuentas.isEmpty();
+    }
+}

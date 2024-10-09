@@ -1,0 +1,52 @@
+package co.edu.uco.deviucopay.business.facade.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.assembler.dto.impl.CuentaAssemblerDTO;
+import co.edu.uco.deviucopay.business.facade.FacadeWithoutReturn;
+import co.edu.uco.deviucopay.business.usecase.impl.cuenta.RegistrarCuenta;
+import co.edu.uco.deviucopay.crosscutting.exceptions.DeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.BusinessDeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.MessageCatalogStrategy;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.data.CodigoMensaje;
+import co.edu.uco.deviucopay.data.dao.factory.DAOFactory;
+import co.edu.uco.deviucopay.dto.CuentaDTO;
+
+public class RegistrarCuentaFacade implements FacadeWithoutReturn<CuentaDTO>{
+    
+    private DAOFactory daoFactory;
+    
+    public RegistrarCuentaFacade() {
+        daoFactory = DAOFactory.getFactory();
+        
+    }
+    
+
+    @Override
+    public void execute(CuentaDTO dto) {
+        daoFactory.iniciarTransaccion();
+        try {
+            var useCase= new RegistrarCuenta(daoFactory);
+            var cuentaDomain = CuentaAssemblerDTO.getInstance().toDomain(dto);
+            
+            useCase.execute(cuentaDomain);
+
+            daoFactory.confirmarTransaccion();
+            
+        }catch (DeviUcopayException exception) {
+            daoFactory.cancelarTransaccion();
+            throw exception;
+            
+        }catch (Exception exception) {
+            daoFactory.cancelarTransaccion();
+            var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00039);
+			var mensajeTecnico = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00040);
+           
+            throw new BusinessDeviUcopayException(mensajeUsuario, mensajeTecnico, exception);
+        }finally {
+            daoFactory.cerrarConexion();
+        }
+        
+        
+    }
+
+    
+}

@@ -1,0 +1,42 @@
+package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.crosscutting.exceptions.DeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.MessageCatalogStrategy;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.data.CodigoMensaje;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+
+public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+    private final CuentaDAO cuentaDAO;
+    private final int LONGUITUD_NUMERO_CUENTA = 10;
+
+    public EliminarCuenta(CuentaDAO cuentaDAO) {
+        this.cuentaDAO = cuentaDAO;
+    }
+
+    @Override
+    public void execute(String numeroCuenta) {
+        if (numeroCuenta.length() != LONGUITUD_NUMERO_CUENTA) {
+            var mensajeUsuario = "El número de cuenta debe tener exactamente " + LONGUITUD_NUMERO_CUENTA + " caracteres.";
+            throw new DeviUcopayException(mensajeUsuario);
+        }
+        if (!numeroCuenta.matches("\\d{" + LONGUITUD_NUMERO_CUENTA + "}")) {
+        	var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00057);
+            
+            throw new DeviUcopayException(mensajeUsuario);
+        }
+
+        if (!cuentaDAO.existePorNumeroCuenta(numeroCuenta)) {
+            var mensajeUsuario = "La cuenta no existe.";
+            throw new DeviUcopayException(mensajeUsuario);
+        } 
+
+        double saldo = cuentaDAO.obtenerSaldoPorNumeroCuenta(numeroCuenta);
+        if (saldo != 0.0) {
+            var mensajeUsuario = "La cuenta no puede ser eliminada porque su saldo no es cero.";
+            throw new DeviUcopayException(mensajeUsuario);
+        }
+        cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+    }
+}

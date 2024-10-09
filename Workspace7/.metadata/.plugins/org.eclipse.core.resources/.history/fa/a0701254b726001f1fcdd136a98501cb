@@ -1,0 +1,30 @@
+package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.crosscutting.exceptions.DeviUcopayException;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+
+public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+    private final CuentaDAO cuentaDAO;
+    private final int longitudMinimaCuenta; // Nueva variable para la longitud mínima
+
+    public EliminarCuenta(CuentaDAO cuentaDAO, int longitudMinimaCuenta) {
+        this.cuentaDAO = cuentaDAO;
+        this.longitudMinimaCuenta = longitudMinimaCuenta; // Inicializar la longitud mínima
+    }
+
+    @Override
+    public void execute(String numeroCuenta) {
+        if (numeroCuenta.length() < longitudMinimaCuenta) {
+        	var mensajeUsuario ="El número de cuenta debe tener al menos " + longitudMinimaCuenta + " caracteres.";
+            throw new DeviUcopayException(mensajeUsuario, null);
+        }
+
+        if (!cuentaDAO.existePorNumeroCuenta(numeroCuenta)) {
+        	var mensajeUsuario = "La cuenta no existe";
+            throw new DeviUcopayException(mensajeUsuario, null);
+        }
+        cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+    }
+}

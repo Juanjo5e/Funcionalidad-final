@@ -1,0 +1,105 @@
+package co.edu.uco.deviucopay.business.usecase.impl.institucion;
+
+import java.util.UUID;
+
+import co.edu.uco.deviucopay.business.assembler.entity.impl.TipoInstitucionAssemblerEntity;
+import co.edu.uco.deviucopay.business.domain.InstitucionDomain;
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.BusinessDeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.MessageCatalogStrategy;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.data.CodigoMensaje;
+import co.edu.uco.deviucopay.crosscutting.helpers.ObjectHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.TextHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.UUIDHelper;
+import co.edu.uco.deviucopay.data.dao.factory.DAOFactory;
+import co.edu.uco.deviucopay.entity.InstitucionEntity;
+
+public class RegistrarInstitucion implements UseCaseWithoutReturn<InstitucionDomain> {
+
+    private DAOFactory factory;
+    
+    
+    public RegistrarInstitucion(final DAOFactory factory) {
+        if (ObjectHelper.getObjectHelper().isNull(factory)) {
+            var mensajeUsuario = "Se ha presentado un problema tratando de llevar a cabo la consulta de las Cuentas";
+            var mensajeTecnico = "El DAOFactory para crear las Cuentas llegó nulo...";
+            throw new BusinessDeviUcopayException(mensajeTecnico, mensajeUsuario);
+        }
+
+        this.factory = factory;
+    }
+
+	@Override
+	public void execute(final InstitucionDomain data) {
+		validarFormatoCorreo(data.getCorreo());
+		validarInstitucion(data.getNombre());
+		validarMismoCorreo(data.getCorreo());
+		
+		var institucionEntity = InstitucionEntity.build().setId(generarIdentificadorInstitucion())
+				.setNombre(data.getNombre())
+				.setCorreo(data.getCorreo())
+				.setTipoInstitucion(TipoInstitucionAssemblerEntity.getInstance().toEntity(data.getTipoInstitucion()));
+		factory.getInstitucionDAO().crear(institucionEntity);
+		
+	}
+	private UUID generarIdentificadorInstitucion() {
+        UUID id;
+        boolean existeId;
+
+        do {
+            id = UUIDHelper.generate();
+            var institucionEntity = InstitucionEntity.build().setId(id);
+            var resultados = factory.getInstitucionDAO().consultar(institucionEntity);
+            existeId =!resultados.isEmpty();
+        } while (existeId);
+
+        return id;
+    }
+
+	private void validarInstitucion(final String nombreInstitucion) {
+		if (TextHelper.isNullOrEmpty(nombreInstitucion)) {
+			var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00057);
+			throw new BusinessDeviUcopayException(mensajeUsuario);
+		}
+
+		if (nombreInstitucion.length() < 1) {
+			var mensajeUsuario = TextHelper
+					.reemplazarParametro(MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00065), nombreInstitucion);
+			throw new BusinessDeviUcopayException(mensajeUsuario);
+		}
+
+		if (nombreInstitucion.length() > 60) {
+			var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00066);
+			throw new BusinessDeviUcopayException(mensajeUsuario);
+		}
+		
+	}
+	
+	private void validarMismoCorreo(final String correo) {
+		var institucionEntity = InstitucionEntity.build().setCorreo(correo);
+
+		var resultados = factory.getInstitucionDAO().consultar(institucionEntity);
+
+		if (!resultados.isEmpty()) {
+			var mensajeUsuario = TextHelper
+					.reemplazarParametro(MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00060), correo);
+			throw new BusinessDeviUcopayException(mensajeUsuario);
+		}
+	}
+	
+	
+	private void validarFormatoCorreo(final String correo) {
+		if (TextHelper.isNullOrEmpty(correo)) {
+			var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00058);
+			throw new BusinessDeviUcopayException(mensajeUsuario);
+		}
+
+		if (!correo.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+			var mensajeUsuario = TextHelper
+					.reemplazarParametro(MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00059), correo);
+			throw new BusinessDeviUcopayException(mensajeUsuario);
+		}
+	}
+	
+
+}

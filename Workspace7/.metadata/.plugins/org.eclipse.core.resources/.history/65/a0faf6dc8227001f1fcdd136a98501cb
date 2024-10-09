@@ -1,0 +1,90 @@
+package co.edu.uco.deviucopay.data.dao.entity.concrete.azuresql;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.DataDeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.MessageCatalogStrategy;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.data.CodigoMensaje;
+import co.edu.uco.deviucopay.crosscutting.helpers.ObjectHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.TextHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.UUIDHelper;
+import co.edu.uco.deviucopay.data.dao.entity.CarnetDAO;
+import co.edu.uco.deviucopay.entity.CarnetEntity;
+import co.edu.uco.deviucopay.entity.CuentaEntity;
+import co.edu.uco.deviucopay.data.dao.entity.concrete.*;
+
+
+public class CarnetPostgresqlDAO extends SqlConnection implements CarnetDAO {
+	
+	public CarnetPostgresqlDAO(final Connection connection) {
+		super(connection);
+		
+	}
+
+	@Override
+	public List<CarnetEntity> consultar(final CarnetEntity data) {
+		final StringBuilder sentenciaSql = new StringBuilder();
+		sentenciaSql.append("SELECT ca.id, ca.numero_carnet, cu.id as id_cuenta, cu.numero_cuenta as numero_cuenta");
+		sentenciaSql.append(" FROM carnet ca");
+		sentenciaSql.append(" INNER JOIN cuenta cu ON ca.Cuenta_id = cu.id");
+		sentenciaSql.append(" WHERE 1=1");
+		
+		final List<Object> parametros = new ArrayList<>();
+
+        if (!ObjectHelper.getObjectHelper().isNull(data.getId()) && !data.getId().equals(UUIDHelper.getDefault())) {
+			sentenciaSql.append(" AND ca.id = ?");
+			parametros.add(data.getId());
+		}
+		if (!TextHelper.isNullOrEmpty(data.getNumeroCarnet())) {
+			sentenciaSql.append(" AND ca.nombre = ?");
+			parametros.add(data.getNumeroCarnet());
+		}
+		if (!ObjectHelper.getObjectHelper().isNull(data.getCuenta())
+				&& !ObjectHelper.getObjectHelper().isNull(data.getCuenta().getId())
+				&& !data.getCuenta().getId().equals(UUIDHelper.getDefault())) {
+			sentenciaSql.append(" AND ca.cuenta_id = ?");
+			parametros.add(data.getCuenta().getId());
+		}
+
+		final List<CarnetEntity> carnets = new ArrayList<>();
+
+		try (final PreparedStatement sentenciaSqlPreparada = getConexion().prepareStatement(sentenciaSql.toString())) {
+			for (int i = 0; i < parametros.size(); i++) {
+				sentenciaSqlPreparada.setObject(i + 1, parametros.get(i));
+			}
+
+			try (final ResultSet resultado = sentenciaSqlPreparada.executeQuery()) {
+				while (resultado.next()) {
+					CarnetEntity carnet = CarnetEntity.build();
+					carnet.setId(UUIDHelper.convertToUUID(resultado.getString("id")));
+					carnet.setNumeroCarnet(resultado.getString("numero_carnet"));
+
+					CuentaEntity cuenta = CuentaEntity.build();
+					cuenta.setId(UUIDHelper.convertToUUID(resultado.getString("idCuenta")));
+					cuenta.setNumeroCuenta(resultado.getString("numero_cuenta"));
+
+					carnet.setCuenta(cuenta);
+
+					carnets.add(carnet);
+				}
+			}
+
+		} catch (final SQLException excepcion) {
+			var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00025);
+			var mensajeTecnico = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00049);
+			throw new DataDeviUcopayException(mensajeUsuario, mensajeTecnico, excepcion);
+
+		} catch (final Exception excepcion) {
+			var mensajeUsuario =  MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00025);
+			var mensajeTecnico = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00049);
+			throw new DataDeviUcopayException(mensajeUsuario, mensajeTecnico, excepcion);
+		}
+
+		return carnets;
+	}
+
+}

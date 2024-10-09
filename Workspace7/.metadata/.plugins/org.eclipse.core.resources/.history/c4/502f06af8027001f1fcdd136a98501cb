@@ -1,0 +1,128 @@
+package co.edu.uco.deviucopay.data.dao.entity.concrete.azuresql;
+
+import java.sql.PreparedStatement;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.Connection;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.DataDeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.MessageCatalogStrategy;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.data.CodigoMensaje;
+import co.edu.uco.deviucopay.crosscutting.helpers.ObjectHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.TextHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.UUIDHelper;
+import co.edu.uco.deviucopay.data.dao.entity.InstitucionDAO;
+import co.edu.uco.deviucopay.data.dao.entity.concrete.SqlConnection;
+import co.edu.uco.deviucopay.entity.InstitucionEntity;
+import co.edu.uco.deviucopay.entity.TipoInstitucionEntity;
+
+public class InstitucionPostgresqlDAO extends SqlConnection implements InstitucionDAO {
+	
+	public InstitucionPostgresqlDAO(final Connection connection) {
+		super(connection);
+	}
+	
+	@Override
+	public void crear(final InstitucionEntity data) {
+	    final StringBuilder sentenciasSql = new StringBuilder();
+
+	    sentenciasSql.append("INSERT INTO institucion (id, nombre, correo, tipo_institucion_id) ");
+	    sentenciasSql.append("VALUES (?, ?, ?, ?)");
+
+	    try (final PreparedStatement sentenciaSqlPreparada = getConexion().prepareStatement(sentenciasSql.toString())) {
+	        sentenciaSqlPreparada.setObject(1, data.getId());
+	        sentenciaSqlPreparada.setString(2, data.getNombre());
+	        sentenciaSqlPreparada.setString(3, data.getCorreo());
+	        sentenciaSqlPreparada.setObject(4, data.getTipoInstitucion().getId());
+
+	        sentenciaSqlPreparada.executeUpdate();
+
+	    } catch (final SQLException exception) {
+	        var mensajeUsuario = "Se ha presentado un problema tratando de registrar la institución, por favor intente de nuevo y si el problema persiste contacte al administrador...";
+	        var mensajeTecnico = "Se ha presentado una excepción de tipo SQLException tratando de realizar el INSERT de la institución. Para más detalles revise la excepción raíz presentada..";
+
+	        throw new DataDeviUcopayException(mensajeTecnico, mensajeUsuario, exception);
+	    } catch (final Exception exception) {
+	        var mensajeUsuario = "Se ha presentado un problema tratando de registrar la institución, por favor intente de nuevo y si el problema persiste contacte al administrador...";
+	        var mensajeTecnico = "Se ha presentado un problema INESPERADO con una excepción de tipo Exception tratando de realizar el INSERT de la institución. Para más detalles revise la excepción raíz presentada..";
+
+	        throw new DataDeviUcopayException(mensajeTecnico, mensajeUsuario, exception);
+	    }
+	}
+
+	@Override
+	public List<InstitucionEntity> consultar(InstitucionEntity data) {
+	    final StringBuilder sentenciaSql = new StringBuilder();
+	    sentenciaSql.append("SELECT i.id, i.nombre, i.correo, i.tipo_institucion_id, ti.nombre AS nombre_tipo_institucion ");
+	    sentenciaSql.append("FROM institucion i ");
+	    sentenciaSql.append("INNER JOIN tipo_institucion ti ON i.tipo_institucion_id = ti.id ");
+
+	    final List<Object> parametros = new ArrayList<>();
+	    final List<String> condiciones = new ArrayList<>();
+
+	    if (data != null) {
+	        if (!ObjectHelper.getObjectHelper().isNull(data.getId()) && !data.getId().equals(UUIDHelper.getDefault())) {
+	            condiciones.add("i.id = ?");
+	            parametros.add(data.getId());
+	        }
+	        if (!TextHelper.isNullOrEmpty(data.getNombre())) {
+	            condiciones.add("i.nombre = ?");
+	            parametros.add(data.getNombre());
+	        }
+	        if (!TextHelper.isNullOrEmpty(data.getCorreo())) {
+	            condiciones.add("i.correo = ?");
+	            parametros.add(data.getCorreo());
+	        }
+	        if (!ObjectHelper.getObjectHelper().isNull(data.getTipoInstitucion())
+	                && !ObjectHelper.getObjectHelper().isNull(data.getTipoInstitucion().getId())
+	                && !data.getTipoInstitucion().getId().equals(UUIDHelper.getDefault())) {
+	            condiciones.add("i.tipo_institucion_id = ?");
+	            parametros.add(data.getTipoInstitucion().getId());
+	        }
+	    }
+
+	    if (!condiciones.isEmpty()) {
+	        sentenciaSql.append(" WHERE ");
+	        sentenciaSql.append(String.join(" AND ", condiciones));
+	    }
+
+	    final List<InstitucionEntity> instituciones = new ArrayList<>();
+
+	    try (final PreparedStatement sentenciaSqlPreparada = getConexion().prepareStatement(sentenciaSql.toString())) {
+	        for (int i = 0; i < parametros.size(); i++) {
+	            sentenciaSqlPreparada.setObject(i + 1, parametros.get(i));
+	        }
+
+	        try (final ResultSet resultado = sentenciaSqlPreparada.executeQuery()) {
+	            while (resultado.next()) {
+	                InstitucionEntity institucion = new InstitucionEntity();
+	                institucion.setId(UUIDHelper.convertToUUID(resultado.getString("id")));
+	                institucion.setNombre(resultado.getString("nombre"));
+	                institucion.setCorreo(resultado.getString("correo"));
+
+	                TipoInstitucionEntity tipoInstitucion = new TipoInstitucionEntity();
+	                tipoInstitucion.setId(UUIDHelper.convertToUUID(resultado.getString("tipo_institucion_id")));
+	                tipoInstitucion.setNombre(resultado.getString("nombre_tipo_institucion"));
+	                institucion.setTipoInstitucion(tipoInstitucion);
+
+	                instituciones.add(institucion);
+	            }
+	        }
+
+	    } catch (final SQLException excepcion) {
+	        var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00025);
+	        var mensajeTecnico = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00049);
+	        throw new DataDeviUcopayException(mensajeUsuario, mensajeTecnico, excepcion);
+
+	    } catch (final Exception excepcion) {
+	        var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00025);
+	        var mensajeTecnico = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00049);
+	        throw new DataDeviUcopayException(mensajeUsuario, mensajeTecnico, excepcion);
+	    }
+
+	    return instituciones;
+	}
+
+}

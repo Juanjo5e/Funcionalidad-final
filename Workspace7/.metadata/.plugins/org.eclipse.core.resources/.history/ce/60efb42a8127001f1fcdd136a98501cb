@@ -1,0 +1,69 @@
+package co.edu.uco.deviucopay.business.domain;
+
+import java.util.UUID;
+
+import co.edu.uco.deviucopay.crosscutting.helpers.ObjectHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.TextHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.UUIDHelper;
+import co.edu.uco.deviucopay.dto.TipoInstitucionDTO;
+import co.edu.uco.deviucopay.business.domain.TipoInstitucionDomain;
+
+public class InstitucionDomain {
+    private UUID id;
+    private String nombre;
+    private String correo;
+    private TipoInstitucionDomain tipoInstitucion;
+    
+
+    private InstitucionDomain(final UUID id, final String nombre, final String correo, final TipoInstitucionDomain tipoInstitucion) {
+        setId(id);
+        setNombre(nombre);
+        setCorreo(correo);
+        setTipoInstitucion(tipoInstitucion);
+        
+    }
+
+    public final  static InstitucionDomain build(final UUID id, final String nombre,final String correo, final TipoInstitucionDomain tipoInstitucionDTO) {
+        return new InstitucionDomain(id, nombre, correo, tipoInstitucionDTO);
+    }
+
+    public final  static InstitucionDomain build(final UUID id) {
+        return new InstitucionDomain(id, TextHelper.EMPTY, TextHelper.EMPTY, TipoInstitucionDomain.build());
+    }
+
+    public final static InstitucionDomain build() {
+        return new InstitucionDomain(UUIDHelper.getDefault(), TextHelper.EMPTY, TextHelper.EMPTY, TipoInstitucionDomain.build());
+    }
+
+    private final void setId(UUID id) {
+        this.id = UUIDHelper.getDefault(id, UUIDHelper.getDefault());
+    }
+
+    private final void setNombre(String nombre) {
+        this.nombre = TextHelper.applyTrim(nombre);
+    }
+
+    private final void setTipoInstitucion(TipoInstitucionDomain tipoInstitucion) {
+        this.tipoInstitucion = ObjectHelper.getObjectHelper().getDefaultValue(tipoInstitucion, TipoInstitucionDomain.build());
+    }
+
+    private final void setCorreo(String correo) {
+        this.correo = TextHelper.applyTrim(correo);
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public TipoInstitucionDomain getTipoInstitucion() {
+        return tipoInstitucion;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+}

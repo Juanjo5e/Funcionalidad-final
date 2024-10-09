@@ -1,0 +1,10 @@
+package co.edu.uco.deviucopay.data.dao.entity;
+
+import co.edu.uco.deviucopay.entity.CuentaEntity;
+
+public interface CuentaDAO extends CreateDAO<CuentaEntity>, DeleteDAO<String>, UpdateDAO<CuentaEntity>, RetriveDAO<CuentaEntity> {
+    boolean verificarCuentaYPIN(String numeroCuenta, String pin);
+    boolean verificarCuenta(String numeroCuenta);
+    
+    void eliminarPorNumeroCuenta(String numeroCuenta);
+}

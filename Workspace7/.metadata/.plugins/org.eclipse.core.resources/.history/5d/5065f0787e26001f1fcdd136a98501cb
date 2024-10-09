@@ -1,0 +1,32 @@
+package co.edu.uco.deviucopay.business.facade.impl.cuenta;
+
+import java.util.List;
+import java.util.UUID;
+
+import co.edu.uco.deviucopay.business.assembler.dto.impl.CuentaAssemblerDTO;
+import co.edu.uco.deviucopay.business.domain.CuentaDomain;
+import co.edu.uco.deviucopay.business.facade.FacadeWithReturn;
+import co.edu.uco.deviucopay.business.usecase.impl.cuenta.EliminarCuenta;
+import co.edu.uco.deviucopay.crosscutting.exceptions.DeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.BusinessDeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.MessageCatalogStrategy;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.data.CodigoMensaje;
+import co.edu.uco.deviucopay.crosscutting.helpers.ObjectHelper;
+import co.edu.uco.deviucopay.data.dao.factory.DAOFactory;
+import co.edu.uco.deviucopay.dto.CuentaDTO;
+
+public class EliminarCuentaFacade implements FacadeWithReturn<CuentaDomain, List<CuentaDomain>> {
+	
+	
+	private DAOFactory daoFactory;
+
+    public EliminarCuentaFacade() {
+        daoFactory = DAOFactory.getFactory();
+    }
+  
+	@Override
+	public List<CuentaDomain> execute(CuentaDomain dto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+}

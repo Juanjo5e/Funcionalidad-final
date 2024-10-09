@@ -1,0 +1,18 @@
+package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+
+public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+    private final CuentaDAO cuentaDAO;
+
+    public EliminarCuenta(CuentaDAO cuentaDAO) {
+        this.cuentaDAO = cuentaDAO;
+    }
+
+    @Override
+    public void execute(String numeroCuenta) {
+        cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+    }
+}

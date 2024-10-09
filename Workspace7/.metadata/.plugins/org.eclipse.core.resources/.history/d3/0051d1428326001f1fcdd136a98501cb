@@ -1,0 +1,19 @@
+package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.domain.CuentaDomain;
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+
+public class EliminarCuenta implements UseCaseWithoutReturn<CuentaDomain> {
+
+    private final CuentaDAO cuentaDAO;
+
+    public EliminarCuenta(CuentaDAO cuentaDAO) {
+        this.cuentaDAO = cuentaDAO;
+    }
+
+    @Override
+    public void execute(CuentaDomain domain) {
+        cuentaDAO.eliminar(domain.getId());
+    }
+}

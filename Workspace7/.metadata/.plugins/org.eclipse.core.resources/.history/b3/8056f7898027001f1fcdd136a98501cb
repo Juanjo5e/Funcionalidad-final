@@ -1,0 +1,70 @@
+package co.edu.uco.deviucopay.dto;
+import java.util.UUID;
+
+import co.edu.uco.deviucopay.crosscutting.helpers.ObjectHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.TextHelper;
+import co.edu.uco.deviucopay.crosscutting.helpers.UUIDHelper;
+
+
+public final class InstitucionDTO {
+	
+	private UUID id;
+	private String nombre;
+	private String correo;
+	private TipoInstitucionDTO tipoInstitucion;	
+	
+	public InstitucionDTO () {
+		super();
+		setId(UUIDHelper.getDefault());
+		setNombre(TextHelper.EMPTY);
+		setCorreo(TextHelper.EMPTY);
+		setTipoInstitucion(TipoInstitucionDTO.build());
+	}
+	
+	public InstitucionDTO(final UUID id, final  String nombre, final String correo, final TipoInstitucionDTO tipoInstitucion) {		
+		setId(id);
+		setNombre(nombre);
+		setCorreo(correo);
+		setTipoInstitucion(tipoInstitucion);
+	}
+
+	public static final InstitucionDTO build() {
+		return new InstitucionDTO();
+	}
+	
+	public final InstitucionDTO setId( final UUID id) {
+		this.id = UUIDHelper.getDefault(id, UUIDHelper.getDefault());
+		return this;
+	}
+	
+	public final InstitucionDTO setNombre(final String nombre) {
+		this.nombre = TextHelper.applyTrim(nombre);
+		return this;
+	}
+
+	public final InstitucionDTO setCorreo(final String correo) {
+		this.correo = TextHelper.applyTrim(correo);
+		return this;
+	}
+
+	public final InstitucionDTO setTipoInstitucion(final TipoInstitucionDTO tipoInstitucion) {
+		this.tipoInstitucion = ObjectHelper.getObjectHelper().getDefaultValue(tipoInstitucion, new TipoInstitucionDTO());
+		return this;
+	}
+
+	public final String getCorreo() {
+		return correo;
+	}
+	
+	public final UUID getId() {
+		return id;
+	}	
+	
+	public final String getNombre() {
+		return nombre;
+	}
+
+	public TipoInstitucionDTO getTipoInstitucion() {
+		return tipoInstitucion;
+	}
+}

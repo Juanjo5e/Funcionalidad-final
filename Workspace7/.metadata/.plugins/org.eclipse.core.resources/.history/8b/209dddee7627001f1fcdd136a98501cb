@@ -1,0 +1,49 @@
+package co.edu.uco.deviucopay.controller;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import co.edu.uco.deviucopay.business.facade.impl.institucion.ConsultarInstitucionFacade;
+import co.edu.uco.deviucopay.controller.response.InstitucionResponse;
+import co.edu.uco.deviucopay.crosscutting.exceptions.DeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.MessageCatalogStrategy;
+import co.edu.uco.deviucopay.crosscutting.exceptions.messageCatalog.data.CodigoMensaje;
+import co.edu.uco.deviucopay.dto.InstitucionDTO;
+import co.edu.uco.deviucopay.dto.TipoInstitucionDTO;
+
+@RestController
+@RequestMapping("/institucion/")
+public class InstitucionController {
+	
+	@GetMapping ("{id}")
+	public ResponseEntity<InstitucionResponse> consultar(@PathVariable("id") UUID idTipoInstitucion){
+		
+		var httpStatusCode = HttpStatus.ACCEPTED;
+		var institucionResponse = new InstitucionResponse();
+		
+		try {
+			var institucionDto = InstitucionDTO.build().setTipoInstitucion(TipoInstitucionDTO.build().setId(idTipoInstitucion));
+			var facade = new ConsultarInstitucionFacade();
+			
+			institucionResponse.setDatos(facade.execute(institucionDto));
+			institucionResponse.getMensajes().add(MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00040));
+			
+		}catch(final DeviUcopayException excepcion) {
+			httpStatusCode = HttpStatus.BAD_REQUEST;
+			institucionResponse.getMensajes().add(excepcion.getMensajeUsuario());
+			excepcion.printStackTrace();
+		}catch(final Exception excepcion) {
+			httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+			
+			var mensajeUsuario = MessageCatalogStrategy.getContenidoMensaje(CodigoMensaje.M00025);
+			institucionResponse.getMensajes().add(mensajeUsuario);
+			
+			excepcion.printStackTrace();
+		}
+		
+		return new ResponseEntity<>(institucionResponse,httpStatusCode);
+	}
+}

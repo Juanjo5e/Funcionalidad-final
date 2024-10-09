@@ -1,0 +1,20 @@
+package co.edu.uco.deviucopay.business.facade.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.facade.FacadeWithoutReturn;
+import co.edu.uco.deviucopay.business.usecase.impl.cuenta.EliminarCuenta;
+import co.edu.uco.deviucopay.data.dao.factory.DAOFactory;
+import co.edu.uco.deviucopay.dto.CuentaDTO;
+
+public class EliminarCuentaFacade implements FacadeWithoutReturn<CuentaDTO> {
+
+    private final EliminarCuenta eliminarCuenta;
+
+    public EliminarCuentaFacade() {
+        this.eliminarCuenta = new EliminarCuenta(DAOFactory.getFactory().getCuentaDAO(), 0);
+    }
+
+    @Override
+    public void execute(CuentaDTO dto) {
+        eliminarCuenta.execute(dto.getNumeroCuenta());
+    }
+}

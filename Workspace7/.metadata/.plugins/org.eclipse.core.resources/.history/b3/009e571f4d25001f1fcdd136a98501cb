@@ -1,0 +1,51 @@
+package co.edu.uco.deviucopay.business.facade.impl.cuenta;
+
+import co.edu.uco.deviucopay.business.assembler.dto.impl.CuentaAssemblerDTO;
+import co.edu.uco.deviucopay.business.usecase.impl.cuenta.ConsultarCuentas;
+import co.edu.uco.deviucopay.crosscutting.exceptions.DeviUcopayException;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.BusinessDeviUcopayException;
+import co.edu.uco.deviucopay.data.dao.factory.DAOFactory;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+import co.edu.uco.deviucopay.dto.CuentaDTO;
+import co.edu.uco.deviucopay.dto.LoginDTO;
+
+public class LoginCuentaFacade {
+
+    private DAOFactory daoFactory;
+    private CuentaDAO cuentaDAO; 
+
+    public LoginCuentaFacade() {
+        daoFactory = DAOFactory.getFactory();
+        cuentaDAO = daoFactory.getCuentaDAO(); // Obtener el DAO de Cuenta
+    }
+
+    public CuentaDTO execute(LoginDTO loginDTO) {
+        try {
+            boolean cuentaValida = cuentaDAO.verificarCuentaYPIN(loginDTO.getNumeroCuenta(), loginDTO.getPin());
+            if (!cuentaValida) {
+                var mensajeUsuario = "Número de cuenta o PIN incorrecto";
+                throw new BusinessDeviUcopayException(mensajeUsuario);
+            }
+
+  
+            var usecase = new ConsultarCuentas(daoFactory);
+            var cuentaDTO = CuentaDTO.build()
+                .setNumeroCuenta(loginDTO.getNumeroCuenta())
+                .setPin(loginDTO.getPin());
+            var cuentaDomain = CuentaAssemblerDTO.getInstance().toDomain(cuentaDTO);
+            var resultadosDomain = usecase.execute(cuentaDomain);
+            var resultadosDTO = CuentaAssemblerDTO.getInstance().toDTOCollection(resultadosDomain);
+
+            return resultadosDTO.get(0);
+
+        } catch (final DeviUcopayException exception) {
+            throw exception;
+        } catch (final Exception exception) {
+            var mensajeUsuario = "Se ha presentado un problema al intentar iniciar sesión";
+            var mensajeTecnico = "Se ha presentado un problema INESPERADO tratando de autenticar la cuenta";
+            throw new BusinessDeviUcopayException(mensajeTecnico, mensajeUsuario, exception);
+        } finally {
+            daoFactory.cerrarConexion();
+        }
+    }
+}

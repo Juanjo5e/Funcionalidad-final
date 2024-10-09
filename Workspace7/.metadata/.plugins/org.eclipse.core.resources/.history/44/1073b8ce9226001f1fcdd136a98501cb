@@ -1,0 +1,65 @@
+package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+import java.util.List;
+
+import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+import co.edu.uco.deviucopay.crosscutting.exceptions.customs.BusinessDeviUcopayException;
+import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+import co.edu.uco.deviucopay.data.dao.factory.DAOFactory;
+import co.edu.uco.deviucopay.entity.AfiliadoEntity;
+
+public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+	private DAOFactory factory;
+	
+    private final CuentaDAO cuentaDAO;
+
+    public EliminarCuenta(CuentaDAO cuentaDAO) {
+        this.cuentaDAO = cuentaDAO;
+    }
+
+    @Override
+    public void execute(String numeroCuenta) {
+    	
+    	 
+    	if (afiliadoEntitys == null || afiliadoEntitys.isEmpty()) {
+            var mensajeUsuario = "El afiliado no está registrado en la institución.";
+            throw new BusinessDeviUcopayException(mensajeUsuario);
+        }
+    	
+        cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+    }
+    }
+    
+   /* package co.edu.uco.deviucopay.business.usecase.impl.cuenta;
+
+    import co.edu.uco.deviucopay.business.usecase.UseCaseWithoutReturn;
+    import co.edu.uco.deviucopay.data.dao.entity.CuentaDAO;
+
+    public class EliminarCuenta implements UseCaseWithoutReturn<String> {
+
+        private final CuentaDAO cuentaDAO;
+
+        public EliminarCuenta(CuentaDAO cuentaDAO) {
+            this.cuentaDAO = cuentaDAO;
+        }
+   
+
+        @Override
+       public void execute(String numeroCuenta) {
+            if (numeroCuenta == null || numeroCuenta.isEmpty()) {
+                throw new IllegalArgumentException("El número de cuenta es requerido");
+            }
+
+            CuentaDAO cuenta = cuentaDAO.findByNumeroCuenta(numeroCuenta);
+            if (cuenta == null) {
+                throw new RuntimeException("La cuenta no existe");
+            }
+
+            if (!cuenta.getEstado().equals("ACTIVO")) {
+                throw new RuntimeException("La cuenta no se puede eliminar porque no está activa");
+            }
+
+            cuentaDAO.eliminarPorNumeroCuenta(numeroCuenta);
+        }*/
+

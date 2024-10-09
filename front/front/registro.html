@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Creación de Cuenta</title>
+</head>
+<body>
+  <div class="max-w-4xl mx-auto p-6 bg-white dark:bg-zinc-800 shadow-md rounded-lg">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-green-700 dark:text-green-300">CREACION DE CUENTA</h2>
+      <img src="./image/LogoSample_ByTailorBrands (3).jpg" alt="Deviuco Pay Logo" class="h-15 w-32">
+    </div>
+    <form id="formCrearCuenta" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label for="idAfiliado" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">ID Afiliado</label>
+        <input id="idAfiliado" type="text" class="mt-1 block w-full p-2 border border-zinc-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white">
+      </div>
+      <div>
+        <label for="pin" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Escriba su pin</label>
+        <input id="pin" type="password" maxlength="4" class="mt-1 block w-full p-2 border border-zinc-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white">
+      </div>
+      <div>
+        <label for="confpin" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Confirme su pin</label>
+        <input id="confpin" type="password" maxlength="4" class="mt-1 block w-full p-2 border border-zinc-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white">
+      </div>
+      <div>
+        <label for="selectTipoCuenta" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Seleccione el tipo de cuenta</label>
+        <select id="selectTipoCuenta" class="mt-1 block w-full p-2 border border-zinc-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white">
+          <option value="">Seleccione una opción</option>
+          
+        </select>
+      </div>
+      <div class="col-span-1 md:col12 flex justify-between">
+        <button id="bRegistro" type="submit" class="bg-green-700 text-white px-2 py-1 rounded-md shadow-sm hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">CREAR CUENTA</button>
+        <button id="bCancelar" type="button" class="bg-zinc-700 text-white px-2 py-1 rounded-md shadow-sm hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">CANCELAR CREACION DE CUENTA</button>
+
+      </div>
+      
+
+      <script>
+        document.getElementById("bRegistro").addEventListener("click", (e) => {
+          e.preventDefault();
+          const pin = document.getElementById("pin").value;
+          const confpin = document.getElementById("confpin").value;
+          const selectTipoCuenta = document.getElementById("selectTipoCuenta").value;
+          if (pin!== confpin) {
+            alert("Las contraseñas no coinciden");
+            return;
+          }
+          if (selectTipoCuenta === "") {
+            alert("Debe seleccionar un tipo de cuenta");
+            return;
+          }
+          
+          fetch('https://api.example.com/crear-cuenta', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    pin: pin,
+    tipoCuenta: selectTipoCuenta
+  })
+})
+.then(response => response.json())
+.then(data => {
+  console.log(data); 
+  if (data.mensajes[0] === 'Cuenta creada exitosamente') {
+    console.log("Cuenta creada exitosamente, redirigiendo a Cuenta.html");
+    window.location.href = "Cuenta.html";
+  } else {
+    alert("No se pudo crear la cuenta");
+  }
+})
+.catch(error => {
+  console.error('Error al procesar la respuesta de la API:', error);
+})
+.catch(error => {
+  console.error('Error al redirigir a Cuenta.html:', error);
+});
+        });
+      </script>
+
+      <script>
+        document.getElementById("bCancelar").addEventListener("click", () => {
+          window.location.href = "Home.html";
+        });
+      </script>
+      
+    </form>
+  </div>
+  <script src="registro.js"></script>
+</body>
+</html>
